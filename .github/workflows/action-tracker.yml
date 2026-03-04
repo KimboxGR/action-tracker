@@ -2,7 +2,7 @@ name: Action Tracker
 
 on:
   schedule:
-    - cron: '30 10 * * 2'  # Elke dinsdag 12:30 NL tijd
+    - cron: '30 10 * * 2'  # Elke dinsdag 12:30 NL tijd (CET)
   workflow_dispatch:
 
 jobs:
@@ -10,29 +10,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Repo uitchecken
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # 2️⃣ Python instellen
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
+      # 3️⃣ Dependencies installeren
       - name: Install dependencies
         run: |
           pip install requests beautifulsoup4
 
+      # 4️⃣ Script draaien
       - name: Run tracker
         env:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
           EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
         run: python tracker.py
-
-      - name: Commit updated products file
-        run: |
-          git config --local user.email "action@tracker.com"
-          git config --local user.name "Action Tracker"
-          git add products_seen.json
-          git commit -m "Update seen products" || echo "No changes"
-          git push
