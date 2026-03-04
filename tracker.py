@@ -5,7 +5,6 @@ import os
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from datetime import datetime
 
 URL = "https://www.action.com/nl-nl/nieuw/"
 HEADERS = {
@@ -18,16 +17,28 @@ def get_products():
 
     products = []
 
+    # Selecteer elk productblok (controleer HTML van Action)
     for item in soup.select("a[href*='/p/']"):
         name = item.get_text(strip=True)
         link = "https://www.action.com" + item["href"]
 
+        # Afbeelding ophalen
+        img_tag = item.select_one("img")
+        image = img_tag['src'] if img_tag else ""
+
+        # Prijs ophalen
+        price_tag = item.select_one(".product-price")  # pas selector aan als nodig
+        price = price_tag.get_text(strip=True) if price_tag else ""
+
         if name:
             products.append({
                 "name": name,
-                "url": link
+                "url": link,
+                "image": image,
+                "price": price
             })
 
+    # Verwijder duplicates op URL
     return list({p["url"]: p for p in products}.values())
 
 def load_seen():
@@ -50,10 +61,42 @@ def send_email(new_products):
     msg["From"] = sender
     msg["To"] = receiver
 
-    html = "<h2>Nieuwe producten bij Action:</h2><ul>"
+    # HTML e-mail (mobiel-vriendelijk, tabel layout)
+    html = """
+    <html>
+    <head>
+      <style>
+        body { font-family: Arial, sans-serif; }
+        table { border-collapse: collapse; width: 100%; }
+        td { padding: 8px; vertical-align: middle; }
+        img { width: 80px; height: auto; display: block; }
+        a { text-decoration: none; color: #1a73e8; }
+        @media only screen and (max-width: 600px) {
+            td { display: block; width: 100%; }
+            img { margin-bottom: 8px; }
+        }
+      </style>
+    </head>
+    <body>
+      <h2>Nieuwe producten bij Action</h2>
+      <table>
+    """
+
     for product in new_products:
-        html += f"<li><a href='{product['url']}'>{product['name']}</a></li>"
-    html += "</ul>"
+        html += "<tr>"
+        html += f"<td><img src='{product['image']}'></td>" if product['image'] else "<td></td>"
+        html += "<td>"
+        html += f"<a href='{product['url']}'><strong>{product['name']}</strong></a><br>"
+        if product['price']:
+            html += f"<span>{product['price']}</span>"
+        html += "</td>"
+        html += "</tr>"
+
+    html += """
+      </table>
+    </body>
+    </html>
+    """
 
     msg.attach(MIMEText(html, "html"))
 
