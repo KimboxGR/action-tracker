@@ -35,7 +35,10 @@ def get_products():
                 "price": price
             })
 
-    return list({p["url"]: p for p in products}.values())
+    # duplicates verwijderen
+    unique = {p["url"]: p for p in products}
+
+    return list(unique.values())
 
 
 def load_seen():
@@ -55,71 +58,112 @@ def generate_html(products):
     today = datetime.now().strftime("%d %B")
 
     html = f"""
-    <html>
-    <body style="margin:0;background:#f4f6f8;font-family:Arial,sans-serif;">
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
 
-    <div style="background:#003A8F;color:white;padding:20px;text-align:center;">
-    <h2 style="margin:0;">🛒 Nieuw bij Action – {today}</h2>
-    <p style="margin:5px 0 0 0;">Vandaag zijn er {len(products)} nieuwe producten gevonden</p>
-    </div>
+body {{
+margin:0;
+background:#f4f6f8;
+font-family:Arial,sans-serif;
+}}
 
-    <div style="padding:20px;">
-    <table width="100%" style="max-width:800px;margin:auto;">
-    <tr>
-    """
+.product-column {{
+width:50%;
+}}
+
+@media only screen and (max-width:600px) {{
+
+.product-column {{
+width:100% !important;
+display:block !important;
+}}
+
+}}
+
+.card {{
+background:white;
+border-radius:10px;
+box-shadow:0 2px 8px rgba(0,0,0,0.08);
+padding:15px;
+text-align:center;
+}}
+
+.button {{
+display:inline-block;
+background:#003A8F;
+color:white;
+padding:12px 18px;
+border-radius:6px;
+text-decoration:none;
+font-size:14px;
+}}
+
+</style>
+</head>
+
+<body>
+
+<div style="background:#003A8F;color:white;padding:20px;text-align:center;">
+<h2 style="margin:0;">🛒 Nieuw bij Action – {today}</h2>
+<p style="margin:5px 0 0 0;">Vandaag zijn er {len(products)} nieuwe producten gevonden</p>
+</div>
+
+<div style="padding:20px;">
+<table width="100%" style="max-width:800px;margin:auto;" cellspacing="0">
+
+<tr>
+"""
 
     for i, product in enumerate(products):
 
         html += f"""
-        <td style="width:50%;padding:10px;">
-        <div style="background:white;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.08);padding:15px;text-align:center;">
+<td class="product-column" style="padding:10px;vertical-align:top;">
 
-        <img src="{product['image']}" style="width:100%;max-width:250px;border-radius:8px;"><br><br>
+<div class="card">
 
-        <div style="font-weight:bold;color:#222;margin-bottom:5px;">
-        {product['name']}
-        </div>
+<img src="{product['image']}" style="width:100%;max-width:260px;border-radius:8px;"><br><br>
 
-        <div style="font-size:18px;color:#003A8F;font-weight:bold;margin-bottom:12px;">
-        {product['price']}
-        </div>
+<div style="font-weight:bold;color:#222;margin-bottom:6px;">
+{product['name']}
+</div>
 
-        <a href="{product['url']}" style="
-        display:inline-block;
-        background:#003A8F;
-        color:white;
-        padding:10px 16px;
-        border-radius:6px;
-        text-decoration:none;
-        font-size:14px;
-        ">
-        Bekijk product →
-        </a>
+<div style="font-size:18px;color:#003A8F;font-weight:bold;margin-bottom:14px;">
+{product['price']}
+</div>
 
-        </div>
-        </td>
-        """
+<a href="{product['url']}" class="button">
+Bekijk product →
+</a>
+
+</div>
+
+</td>
+"""
 
         if i % 2 == 1:
             html += "</tr><tr>"
 
     html += """
-    </tr>
-    </table>
-    </div>
 
-    <div style="text-align:center;color:#666;font-size:13px;padding:30px 20px;">
-    Automatisch gegenereerd door jouw schatje,<br>
-    omdat ik zoveel van je hou ❤️<br><br>
+</tr>
 
-    Hopelijk zit er weer iets leuks tussen.<br><br>
+</table>
+</div>
 
-    Bron: action.com
-    </div>
+<div style="text-align:center;color:#666;font-size:13px;padding:30px 20px;">
+Automatisch gegenereerd door jouw schatje,<br>
+omdat ik zoveel van je hou ❤️<br><br>
 
-    </body>
-    </html>
-    """
+Hopelijk zit er weer iets leuks tussen.<br><br>
+
+Bron: action.com
+</div>
+
+</body>
+</html>
+"""
 
     return html
 
